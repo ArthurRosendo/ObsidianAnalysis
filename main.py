@@ -15,24 +15,28 @@ if __name__ == '__main__':
         print("File doesn't exists")
         exit()
     else:
-        print("File exists. Processing...")
+        print("File exists.")
 
     vault = otools.Vault(path_vault).connect().gather()
     graph = vault.graph
 
     # Remove nodes with tags
-    nodes_to_remove = []
-    for node in graph:
-        try:
-            if any(x in ["Game"] for x in vault.get_tags(node)):
-                nodes_to_remove.append(node)
-        except ValueError:
-            # Node likely doesn't exist as a note, meaning it is not possible for it to have tags
-            print(
-                "A note has an outgoing link that doesn't exists as a note, tags can't be evaluated for something that doesn't exists. Rest of the code may break as no intensive test was done with missing nodes.")
-            continue
-    for x in nodes_to_remove:
-        graph.remove_node(x)
+    string_tags_to_remove = input("Tags to be removed, separated by commas: ")
+    if string_tags_to_remove:
+        tags_to_remove = string_tags_to_remove.split(',')
+
+        nodes_to_remove = list()
+        for node in graph:
+            try:
+                if any(x in tags_to_remove for x in vault.get_tags(node)):
+                    nodes_to_remove.append(node)
+            except ValueError:
+                # Node likely doesn't exist as a note, meaning it is not possible for it to have tags
+                print(
+                    "A note has an outgoing link that doesn't exists as a note, tags can't be evaluated for something that doesn't exists. Rest of the code may break as no intensive test was done with missing nodes.")
+                continue
+        for x in nodes_to_remove:
+            graph.remove_node(x)
 
     # NOTE: The definition of:
     # "incoming" = Backlinks, nodes that point to this node
